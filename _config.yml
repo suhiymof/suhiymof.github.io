@@ -1,10 +1,10 @@
 # Site settings
-title: LioTwice Blog
-SEOTitle: LioTwice
+title: suhiymof Blog
+SEOTitle: suhiymof
 header-img: img/home-bg.jpg
 email: 493767178@qq.com
 description: "这里是一个程序员"
-keyword: "LioTwice, suhiymof, suhiy"
+keyword: "suhiymof, suhiy"
 url: "http://suhiymof.github.io" # your host, for absolute URL
 baseurl: "" # for example, '/blog' if your blog hosted on 'host/blog'
 

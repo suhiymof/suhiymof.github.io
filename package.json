@@ -1,9 +1,9 @@
 {
-    "name": "LioTwice-blog",
-    "title": "LioTwice Blog",
+    "name": "suhiymof-blog",
+    "title": "suhiymof Blog",
     "version": "1.0.0",
-    "homepage": "http://suhiymof.github.io",
-    "author": "LioTwice",
+    "homepage": "https://suhiymof.github.io",
+    "author": "suhiymof",
     "devDependencies": {
         "grunt": "~0.4.5",
         "grunt-contrib-less": "~0.11.4",
