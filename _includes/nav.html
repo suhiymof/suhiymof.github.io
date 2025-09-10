@@ -24,6 +24,7 @@
                     <li>
                         <a href="{{ site.baseurl }}/">Home</a>
                     </li>
+                    <!-- 这里不会包含_config.yml的字段exclude里面包含的 -->
                     {% for page in site.pages %}{% if page.title %}
                     <li>
                         <a href="{{ page.url | prepend: site.baseurl }}">{{ page.title }}</a>
