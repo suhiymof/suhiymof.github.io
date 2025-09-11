@@ -1,0 +1,164 @@
+---
+layout:     post
+title:      "hy2-端口跳跃"
+date:       2025-09-11 16:30:00
+author:     "suhiymof"
+header-img: "img/hy2相关-bg-2025.jpg"
+tags:
+    - 魔法
+    - hy2
+---
+
+## iptables端口跳跃设置{#1}
+- 🧩命令
+    > iptables -t nat -A PREROUTING -i eth0 -p udp --dport 20000:50000  -j DNAT --to-destination :5666
+
+- 🔍 逐部分详解（以 IPv4 为例）
+    - iptables  
+        > Linux 下用于配置 IPv4 数据包过滤和 NAT 的工具。
+
+    - -t nat
+        > 指定操作的是 nat 表（Network Address Translation），用于修改源/目标地址或端口。
+
+        > NAT 表常用链：PREROUTING（数据包刚进来）、POSTROUTING（数据包即将出去）、OUTPUT（本机发出
+ 
+    - -A PREROUTING
+        > 追加（Append） 一条规则到 PREROUTING 链。 
+
+        > PREROUTING：在路由决策之前处理数据包 —— 适合做“目标地址/端口重定向”。 
+
+    - -i eth0
+        > 指定规则只对从 eth0 网卡 进入的数据包生效。
+
+        > -i = input interface（入口网卡） 
+
+    - -p udp
+        > 只匹配 UDP 协议 的数据包。
+
+        > -p = protocol 
+
+    - --dport 20000:50000
+        > 匹配目标端口范围：20000 到 50000（包含两端）。
+
+        > --dport = destination port
+        > 常用于处理如 WebRTC、游戏、VoIP 等需要大量端口的服务。 
+
+    - -j DNAT
+        > 指定匹配后执行的动作：目标地址转换（Destination NAT）
+
+        > DNAT：修改数据包的“目标地址”或“目标端口”，通常用于端口转发或负载均衡。 
+
+    - --to-destination :5666
+        > 将匹配的数据包的目标端口重定向到 5666。
+
+        > 注意：这里只写了 :5666，表示“目标端口改为 5666，目标 IP 地址不变”。 
+
+- ✅ 所以完整意思是：
+
+        > "所有从 eth0 进来的 UDP 数据包，如果目标端口在 20000~50000 之间，就把目标端口改成 5666，再交给系统路由。"
+        
+- ⚠️注意事项
+    - 需要开启转发
+        ```shell
+        echo 1 > /proc/sys/net/ipv4/ip_forward
+        echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
+        ```
+
+- 🧪 示例：实际流量走向
+
+    > 假设客户端向服务器 203.0.113.10:30000 发送 UDP 包：
+
+    > 数据包从 eth0 进入服务器。
+
+    > 匹配规则：UDP + dport 30000 ∈ [20000:50000] → 触发 DNAT。
+
+    > 目标端口被改为 5666 → 数据包变成目标 203.0.113.10:5666。
+
+    > 本地监听在 :5666 的服务收到该包，进行处理。
+
+    > 服务返回的数据包自动按连接跟踪（conntrack）原路返回（源端口=30000）。
+---
+
+## 查看当前生效的 NAT 规则{#2}
+- 命令
+    ```
+    # 查看 IPv4 DNAT 规则
+    sudo iptables -t nat -L PREROUTING -n -v --line-numbers
+
+    # 查看 IPv6 DNAT 规则
+    sudo ip6tables -t nat -L PREROUTING -n -v --line-numbers
+    ```
+
+- 🧩 详细解释
+
+    | 参数          | 说明 |
+    | -----------   | ----------- |
+    | -t nat        | 操作 NAT 表（端口转发、地址转换都在这里）       |
+    | -L PREROUTING | 列出 PREROUTING  链中的规则（DNAT 通常在这里）      |
+    | -n | 不解析主机名/服务名（显示原始 IP 和端口号，更清晰） |
+    | -v | 显示详细信息（如匹配的数据包数、字节数） |
+    | --line-numbers | 显示规则编号（方便删除或插入） |
+
+- 💡 额外技巧：查看完整规则（带原始命令格式）
+    ```shell
+    sudo iptables -t nat -S PREROUTING
+    sudo ip6tables -t nat -S PREROUTING
+    ```
+
+    - 输出示例
+    ```
+    -A PREROUTING -i eth0 -p udp -m udp --dport 20000:50000 -j DNAT --to-destination :5666
+    ```
+- 💾 保存规则（重启不丢失）
+
+    **Linux 不会自动保存 iptables 规则，重启后会丢失！必须手动保存。**
+
+    - 使用 iptables-save + 恢复脚本（通用）
+        ```shell
+        # 保存 IPv4
+        sudo iptables-save > /etc/iptables/rules.v4
+
+        # 保存 IPv6
+        sudo ip6tables-save > /etc/iptables/rules.v6
+        ```
+
+        > 📁 建议保存到 /etc/iptables/，这是很多系统默认读取路径。 
+    - 恢复规则（重启后或手动加载）：
+        ```shell
+        # 恢复 IPv4
+        sudo iptables-restore < /etc/iptables/rules.v4
+
+        # 恢复 IPv6
+        sudo ip6tables-restore < /etc/iptables/rules.v6
+        ```
+    - 设置开机自动恢复（推荐）
+    
+        创建 systemd 服务或使用现有工具：
+
+        Ubuntu/Debian（推荐 iptables-persistent）
+        ```
+        sudo apt update
+        sudo apt install iptables-persistent
+
+        # 安装时会提示是否保存当前规则 → 选 Yes
+        # 或手动保存：
+        sudo netfilter-persistent save
+        ```
+
+        以后每次修改规则后，执行：
+
+        `sudo netfilter-persistent save`
+
+        它会自动保存到 /etc/iptables/ 并在开机时加载。
+
+- 🧪 查看连接跟踪
+    - DNAT 依赖内核的 conntrack（连接跟踪）模块。你可以查看当前被 DNAT 转换的活跃连接：
+        ```shell
+        sudo conntrack -L | grep dport=5666
+        ```
+
+- 🗑️ 如何删除某条规则
+
+    删除第 1 条规则(1是前面查看代码里面显示的行号)：
+
+    `sudo iptables -t nat -D PREROUTING 1`

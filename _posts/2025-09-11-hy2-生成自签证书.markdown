@@ -1,0 +1,59 @@
+---
+layout:     post
+title:      "hy2-生成自签证书"
+date:       2025-09-11 16:30:00
+author:     "suhiymof"
+header-img: "img/hy2相关-bg-2025.jpg"
+tags:
+    - 魔法
+    - hy2
+    - 自签证书
+---
+
+## 生成自签证书{#1}
+
+    ```
+    openssl req -x509 -nodes -newkey ec:<(openssl ecparam -name prime256v1) -keyout /etc/hysteria/server.key -out /etc/hysteria/server.crt -subj "/CN=bing.com" -days 36500 && sudo chown hysteria /etc/hysteria/server.key && sudo chown hysteria /etc/hysteria/server.crt
+    ```
+
+- **命令分解**
+
+    该命令可以分解为两个主要部分：证书生成和文件权限设置。
+
+1. **证书生成部分**
+
+    `openssl req -x509 -nodes -newkey ec:<(openssl ecparam -name prime256v1) -keyout /etc/hysteria/server.key -out /etc/hysteria/server.crt -subj "/CN=bing.com" -days 36500`
+
+    - `openssl req`: 这是一个用于管理和生成证书签名请求（CSR）的命令。
+
+    - `-x509`: 这个参数很重要，它告诉 OpenSSL 直接生成一个自签名的证书，而不是一个证书签名请求（CSR）。这使得生成的证书可以直接使用，而无需第三方证书颁发机构（CA）的签名
+
+    - `-node`: 代表“no DES”，禁用加密私钥。这意味着生成的私钥文件（`server.key`）将不被密码保护。这在自动化启动服务时非常有用，因为无需手动输入密码。
+
+    - `-newkey ec:<(openssl ecparam -name prime256v1)`: 这是生成新密钥和证书的核心部分。
+
+        - `-newkey`: 生成一个新的私钥。
+
+        - `-out /etc/hysteria/server.crt`: 指定生成的证书文件（`server.crt`）的输出路径。
+
+        - `-subj "/CN=bing.com"`: 设置证书的主题（Subject）。
+
+            - `CN: Common Name`，通用名称。在这里设置为 `bing.com`，这通常用于混淆，让 TLS 流量看起来像是访问 `bing.com` 这个域名。
+
+        - `-days 36500`: 设置证书的有效期为 36500 天（约 100 年），这使得证书可以长期使用，无需频繁更新。
+
+2. **文件权限设置部分：**
+
+    `&& sudo chown hysteria /etc/hysteria/server.key && sudo chown hysteria /etc/hysteria/server.crt`
+
+        - `&&`: 这是一个命令连接符，表示只有前面的命令成功执行后，后面的命令才会执行。
+
+        - `sudo chown hysteria /etc/hysteria/server.key`: 将私钥文件 `/etc/hysteria/server.key` 的所有者更改为 `hysteria` 用户。
+
+        - `sudo chown hysteria /etc/hysteria/server.crt`: 将证书文件 `/etc/hysteria/server.crt` 的所有者更改为 `hysteria` 用户。
+
+
+---
+
+## 证书指纹查看命令{#2}
+    > openssl x509 -noout -fingerprint -sha256 -in server.crt
