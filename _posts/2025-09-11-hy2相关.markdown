@@ -97,3 +97,7 @@ tags:
 - 查看服务端状态：
 
     `systemctl status hysteria-server.service`
+
+- 查询服务端日志
+
+    `journalctl --no-pager -e -u hysteria-server.service`
