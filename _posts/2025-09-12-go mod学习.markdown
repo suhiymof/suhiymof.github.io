@@ -71,7 +71,7 @@ tags:
         - ` main.go` 中遇到导入 `"example.com/mylocalproject/utils"`，其实是把 逻辑路径 `example.com/mylocalproject` 映射到物理路径 `/home/user/my_project/`。
     - 始终记住一点：**即使 `main.go` 在子目录 `cmd/app` 中，​项目根目录始终由 `go.mod` 的位置决定，`​main.go` 的位置不影响根目录判定！根目录只由 `go.mod` 的位置决定**。如下图：  
     ------------------------------------------
-    ![alt text]("https://github.com/suhiymof/suhiymof.github.io/blob/master/img/Go%E6%A8%A1%E5%9D%97%E8%B7%AF%E5%BE%84%E8%A7%A3%E6%9E%90%E6%B5%81%E7%A8%8B%E5%9B%BE.jpg")
+    ![alt text](img/Go模块路径解析流程图.jpg)
 
     - 有了 `go.mod`, 我们就不必再依赖 `GOPATH` 环境变量，让项目路径必须在 `GOPATH `环境变量包含的路径下了。
 
