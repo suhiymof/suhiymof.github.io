@@ -10,7 +10,7 @@ tags:
 
 1. <span id = "jump1">`socket.lua` 会注册 `PTYPE_SOCKET` 类型消息的处理</span>
 
-```lua {.line-numbers}
+```lua
 skynet.register_protocol {
 	name = "socket",
 	id = skynet.PTYPE_SOCKET,	-- PTYPE_SOCKET = 6
@@ -23,7 +23,7 @@ skynet.register_protocol {
 
 2. 监听到可读后会进入`forward_message_tcp`函数, 此时result各个字段的定义如下
     
-```c {.line-numbers}
+```c
     struct socket_message {
         int id; // 所属socket
         uintptr_t opaque;   // 需要发送的服务
