@@ -8,9 +8,9 @@ tags:
     - skynet
 ---
 
-1. <span id = "jump1">`socket.lua` 会注册 `PTYPE_SOCKET` 类型消息的处理</span>
+<span id = "jump1">`socket.lua` 会注册 `PTYPE_SOCKET` 类型消息的处理</span>
 
-```lua
+```lua{.line-numbers}
 skynet.register_protocol {
 	name = "socket",
 	id = skynet.PTYPE_SOCKET,	-- PTYPE_SOCKET = 6
@@ -21,9 +21,9 @@ skynet.register_protocol {
 }
 ```
 
-2. 监听到可读后会进入`forward_message_tcp`函数, 此时result各个字段的定义如下
+监听到可读后会进入`forward_message_tcp`函数, 此时result各个字段的定义如下
     
-```c
+```c{.line-numbers}
     struct socket_message {
         int id; // 所属socket
         uintptr_t opaque;   // 需要发送的服务
@@ -34,14 +34,14 @@ skynet.register_protocol {
     forward_message_tcp(struct socket_server *ss, struct socket *s, struct socket_lock *l, struct socket_message * result)
 ```
 
-3. 如果一切顺利 函数返回 `SOCKET_DATA ` , skynet_socket_poll() 会进入 `forward_message(SKYNET_SOCKET_TYPE_DATA, false, &result);`, 函数原型
+如果一切顺利 函数返回 `SOCKET_DATA ` , `skynet_socket_poll()` 会进入 `forward_message(SKYNET_SOCKET_TYPE_DATA, false, &result);`
 
 ```c {.line-numbers}
 static void
 forward_message(int type, bool padding, struct socket_message * result)
 ```
 
-4. 首先会包装成 `skynet_socket_message`,此种情况下各字段定义如下
+首先会包装成 `skynet_socket_message`,此种情况下各字段定义如下
 
 ```c {.line-numbers}
 struct skynet_socket_message {
@@ -52,7 +52,7 @@ struct skynet_socket_message {
 };
 ```
 
-5. 把 `skynet_socket_message` 附加到 `skynet_message` 的 `data` 字段
+把 `skynet_socket_message` 附加到 `skynet_message` 的 `data` 字段
 
 ```c {.line-numbers}
 struct skynet_message {
@@ -63,7 +63,7 @@ struct skynet_message {
 };
 ```
 
-6. 调用 `skynet_context_push((uint32_t)result->opaque, &message)` 把消息塞入消息队列， snlua module的回调入口在 `static int cb(struct skynet_context * context, void * ud, int type, int session, uint32_t source, const void * msg, size_t sz)`
+调用 `skynet_context_push((uint32_t)result->opaque, &message)` 把消息塞入消息队列， snlua module的回调入口在 `static int cb(struct skynet_context * context, void * ud, int type, int session, uint32_t source, const void * msg, size_t sz)`
 
 ```c {.line-numbers}
 static int
@@ -110,9 +110,7 @@ _cb(struct skynet_context * context, void * ud, int type, int session, uint32_t 
 }
 ```
 
-7. 看21行的注释, 会调用 `local function raw_dispatch_message(prototype, msg, sz, session, source)`, 因为 `prototype` 是  `PTYPE_SOCKET`,所以最终调用的是 [这里](#jump1) 的 `dispatch`, 传入的参数是 session, source, 和 unpack(msg,sz)([也就是这里](#jump1)  `unpack` 的返回值)
-
-8. `unpack` 代码如下
+看21行的注释, 会调用 `local function raw_dispatch_message(prototype, msg, sz, session, source)`, 因为 `prototype` 是  `PTYPE_SOCKET`,所以最终调用的是 [这里](#jump1) 的 `dispatch`, 传入的参数是 session, source, 和 unpack(msg,sz)([也就是这里](#jump1)  `unpack` 的返回值),`unpack` 代码如下
 
 ```c {.line-numbers}
 static int
@@ -140,7 +138,7 @@ lunpack(lua_State *L) {
 }
 ```
 
-9. 所以传给 `PTYPE_SOCKET` 消息的 `dispatch` 的参数为 `session, source, SKYNET_SOCKET_TYPE_DATA, socketid, size, buffdata`
+所以传给 `PTYPE_SOCKET` 消息的 `dispatch` 的参数为 `session, source, SKYNET_SOCKET_TYPE_DATA, socketid, size, buffdata`
 
 ```lua {.line-numbers}
 -- SKYNET_SOCKET_TYPE_DATA = 1
