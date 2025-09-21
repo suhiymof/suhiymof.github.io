@@ -36,7 +36,7 @@ skynet.register_protocol {
 
 如果一切顺利 函数返回 `SOCKET_DATA ` , `skynet_socket_poll()` 会进入 `forward_message(SKYNET_SOCKET_TYPE_DATA, false, &result);`
 
-```c {.line-numbers}
+```c{.line-numbers}
 static void
 forward_message(int type, bool padding, struct socket_message * result)
 ```
@@ -54,7 +54,7 @@ struct skynet_socket_message {
 
 把 `skynet_socket_message` 附加到 `skynet_message` 的 `data` 字段
 
-```c {.line-numbers}
+```c{.line-numbers}
 struct skynet_message {
 	uint32_t source;    // 0
 	int session;    // 0
@@ -65,7 +65,7 @@ struct skynet_message {
 
 调用 `skynet_context_push((uint32_t)result->opaque, &message)` 把消息塞入消息队列， snlua module的回调入口在 `static int cb(struct skynet_context * context, void * ud, int type, int session, uint32_t source, const void * msg, size_t sz)`
 
-```c {.line-numbers}
+```c{.line-numbers}
 static int
 _cb(struct skynet_context * context, void * ud, int type, int session, uint32_t source, const void * msg, size_t sz) {
 	lua_State *L = ud;//这里是主协程
@@ -112,7 +112,7 @@ _cb(struct skynet_context * context, void * ud, int type, int session, uint32_t 
 
 看21行的注释, 会调用 `local function raw_dispatch_message(prototype, msg, sz, session, source)`, 因为 `prototype` 是  `PTYPE_SOCKET`,所以最终调用的是 [这里](#jump1) 的 `dispatch`, 传入的参数是 session, source, 和 unpack(msg,sz)([也就是这里](#jump1)  `unpack` 的返回值),`unpack` 代码如下
 
-```c {.line-numbers}
+```c{.line-numbers}
 static int
 lunpack(lua_State *L) {
 	struct skynet_socket_message *message = lua_touserdata(L,1);
@@ -140,7 +140,7 @@ lunpack(lua_State *L) {
 
 所以传给 `PTYPE_SOCKET` 消息的 `dispatch` 的参数为 `session, source, SKYNET_SOCKET_TYPE_DATA, socketid, size, buffdata`
 
-```lua {.line-numbers}
+```lua{.line-numbers}
 -- SKYNET_SOCKET_TYPE_DATA = 1
 socket_message[1] = function(id, size, data)
 	local s = socket_pool[id]
@@ -151,7 +151,7 @@ socket_message[1] = function(id, size, data)
 	end
 
 	local sz = driver.push(s.buffer, s.pool, data, size)    -- 将数据塞入 s.buffer 的结尾
-	local rr = s.read_required  -- 调用read的时候会设置,如果 s.buffer 里面没有数据就会挂起
+	local rr = s.read_required  -- 调用read的时候会设置且如果 s.buffer 里面没有数据就会挂起
 	local rrt = type(rr)
 	if rrt == "number" then
 		-- read size
