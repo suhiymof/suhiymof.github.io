@@ -8,7 +8,7 @@ tags:
     - skynet
 ---
 
-<span id = "jump1">`socket.lua` 会注册 `PTYPE_SOCKET` 类型消息的处理</span>
+<span id = "jump1">首先 `socket.lua` 会注册 `PTYPE_SOCKET` 类型消息的处理</span>
 
 ```lua{.line-numbers}
 skynet.register_protocol {
@@ -43,7 +43,7 @@ forward_message(int type, bool padding, struct socket_message * result)
 
 首先会包装成 `skynet_socket_message`,此种情况下各字段定义如下
 
-```c {.line-numbers}
+```c{.line-numbers}
 struct skynet_socket_message {
 	int type;   // SKYNET_SOCKET_TYPE_DATA
 	int id;     // 收到数据的大小
