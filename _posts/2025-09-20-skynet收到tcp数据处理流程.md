@@ -9,6 +9,7 @@ tags:
 ---
 
 1. <span id = "jump1">`socket.lua` 会注册 `PTYPE_SOCKET` 类型消息的处理</span>
+
 ```lua {.line-numbers}
 skynet.register_protocol {
 	name = "socket",
@@ -33,7 +34,7 @@ skynet.register_protocol {
     forward_message_tcp(struct socket_server *ss, struct socket *s, struct socket_lock *l, struct socket_message * result)
 ```
 
-3. 如果一切顺利 函数返回 `SOCKET_DATA ` , skynet_socket_poll() 会进入 `forward_message(SKYNET_SOCKET_TYPE_DATA, false, &result);`, 函数原型为"
+3. 如果一切顺利 函数返回 `SOCKET_DATA ` , skynet_socket_poll() 会进入 `forward_message(SKYNET_SOCKET_TYPE_DATA, false, &result);`, 函数原型
 
 ```c {.line-numbers}
 static void
@@ -109,7 +110,7 @@ _cb(struct skynet_context * context, void * ud, int type, int session, uint32_t 
 }
 ```
 
-7. 看21行的注释, 会调用 `local function raw_dispatch_message(prototype, msg, sz, session, source)`, 因为 `prototype` 是  `PTYPE_SOCKET`,所以最终调用的是 [这里](#jump1) 的 `dispatch`, 传入的参数是 session, source, 和 unpack(msg,sz)([也就是这里的](#jump1) 的 `unpack` 的返回值)
+7. 看21行的注释, 会调用 `local function raw_dispatch_message(prototype, msg, sz, session, source)`, 因为 `prototype` 是  `PTYPE_SOCKET`,所以最终调用的是 [这里](#jump1) 的 `dispatch`, 传入的参数是 session, source, 和 unpack(msg,sz)([也就是这里](#jump1)  `unpack` 的返回值)
 
 8. `unpack` 代码如下
 
